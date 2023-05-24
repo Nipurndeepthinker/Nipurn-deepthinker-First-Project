@@ -1,0 +1,45 @@
+import googleapiclient.discovery
+import googleapiclient.errors
+
+# Load the YouTube Data API credentials from the JSON file
+api_service_name = "youtube"
+api_version = "v3"
+api_key = "AIzaSyDythQZQ4AsNH0QJ6tAwOLz3Gm1vWdhkog"  # Replace with your actual API key
+
+# Create a YouTube Data API client
+youtube = googleapiclient.discovery.build(api_service_name, api_version, developerKey=api_key)
+def search_most_viewed_videos(topic, max_results):
+    try:
+        # Search for videos related to the topic
+        request = youtube.search().list(
+            part="snippet",
+            q=topic,
+            type="video",
+            order="viewCount",
+            maxResults=max_results
+        )
+        response = request.execute()
+
+        playlist = []
+
+        # Extract the video IDs and build the playlist
+        for item in response["items"]:
+            video_id = item["id"]["videoId"]
+            video_title = item["snippet"]["title"]
+            playlist.append((video_id, video_title))
+
+        return playlist
+
+    except googleapiclient.errors.HttpError as e:
+        print("An error occurred:", e)
+        return []
+# Provide the topic and the number of videos you want in the playlist
+topic = "Chat GPT"
+max_results = 10
+
+# Search for the most viewed videos on the given topic
+playlist = search_most_viewed_videos(topic, max_results)
+
+# Print the playlist
+for video_id, video_title in playlist:
+    print(f"{video_title}: https://www.youtube.com/watch?v={video_id}")
