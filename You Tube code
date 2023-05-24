@@ -34,7 +34,7 @@ def search_most_viewed_videos(topic, max_results):
         print("An error occurred:", e)
         return []
 # Provide the topic and the number of videos you want in the playlist
-topic = "Chat GPT"
+topic = "Your Topic"
 max_results = 10
 
 # Search for the most viewed videos on the given topic
