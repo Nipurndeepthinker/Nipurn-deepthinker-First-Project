@@ -1,0 +1,24 @@
+import matplotlib.pyplot as plt
+
+n = int(input("Enter a number: "))
+
+x_values = []
+y_values = []
+
+for num in range(1, n+1):
+    steps = 0
+    while num != 1:
+        if num % 2 == 0:
+            num = num // 2
+        else:
+            num = 3 * num + 1
+        steps += 1
+
+    x_values.append(num)
+    y_values.append(steps)
+
+plt.plot(range(1, n+1), y_values)
+plt.xlabel("Number")
+plt.ylabel("Number of Steps to Reach 1")
+plt.title("Collatz Conjecture")
+plt.show()
