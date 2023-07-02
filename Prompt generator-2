@@ -1,0 +1,27 @@
+import google.generativeai as palm
+
+# Configuration
+palm.configure(api_key="AIzaSyCzxmEqTmBmPdvc_K5QrCskb94tK2gUceE")
+
+defaults = {
+  'model': 'models/text-bison-001',
+  'temperature': 1.0,
+  'candidate_count': 1,
+  'top_k': 40,
+  'top_p': 0.95,
+  'max_output_tokens': 1024,
+  'stop_sequences': [],
+  'safety_settings': [{"category":"HARM_CATEGORY_DEROGATORY","threshold":1},{"category":"HARM_CATEGORY_TOXICITY","threshold":1},{"category":"HARM_CATEGORY_VIOLENCE","threshold":2},{"category":"HARM_CATEGORY_SEXUAL","threshold":2},{"category":"HARM_CATEGORY_MEDICAL","threshold":2},{"category":"HARM_CATEGORY_DANGEROUS","threshold":2}],
+}
+
+# Taking user input
+input_prompt = input("Please provide the topic for prompt creation: ")
+
+prompt = f"Create an effective and engaging prompt based on the following topic: {input_prompt}"
+
+response = palm.generate_text(
+  **defaults,
+  prompt=prompt
+)
+
+print(response.result)
