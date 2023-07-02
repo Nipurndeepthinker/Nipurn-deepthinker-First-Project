@@ -7,7 +7,7 @@ $ pip install google-generativeai
 import google.generativeai as palm
 
 # Configuration
-palm.configure(api_key="AIzaSyCzxmEqTmBmPdvc_K5QrCskb94tK2gUceE")
+palm.configure(api_key="Your Key")
 
 defaults = {
   'model': 'models/text-bison-001',
