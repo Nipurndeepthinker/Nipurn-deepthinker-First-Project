@@ -1,0 +1,63 @@
+# Install the package
+"""
+At the command line, only need to run once to install the package via pip:
+$ pip install google-generativeai
+"""
+
+import google.generativeai as palm
+
+# Configuration
+palm.configure(api_key="AIzaSyCzxmEqTmBmPdvc_K5QrCskb94tK2gUceE")
+
+defaults = {
+  'model': 'models/text-bison-001',
+  'temperature': 0.7,
+  'candidate_count': 1,
+  'top_k': 40,
+  'top_p': 0.95,
+  'max_output_tokens': 1024,
+  'stop_sequences': [],
+  'safety_settings': [{"category":"HARM_CATEGORY_DEROGATORY","threshold":1},{"category":"HARM_CATEGORY_TOXICITY","threshold":1},{"category":"HARM_CATEGORY_VIOLENCE","threshold":2},{"category":"HARM_CATEGORY_SEXUAL","threshold":2},{"category":"HARM_CATEGORY_MEDICAL","threshold":2},{"category":"HARM_CATEGORY_DANGEROUS","threshold":2}],
+}
+
+general_prompt_structure = """Be creative and unique and Creating an effective general prompt structure involves several steps that help to ensure clarity and conciseness. It should be tailored to the specific idea, but here's a general template you can adapt for most situations:
+
+1. **Define the Idea/Concept (Introduction):**
+    - Provide a succinct, high-level overview of the idea/concept you're about to explain.
+    - Give any necessary background information or context.
+
+2. **Describe the Objective (Purpose):**
+    - Clearly outline what you are trying to achieve with the idea/concept.
+    - Discuss any key benefits or outcomes that you expect.
+
+3. **Break Down the Key Elements (Body):**
+    - Divide the main idea into its constituent parts.
+    - For each element, provide a clear definition and a detailed explanation.
+    - Give examples to illustrate each element, if applicable.
+
+4. **Discuss Implementation/Execution (Process):**
+    - Explain how you would put the idea/concept into practice.
+    - Discuss any challenges you might encounter and how you plan to overcome them.
+    - Describe the resources, tools, or skills that you would need.
+
+5. **Summarize and Highlight Key Takeaways (Conclusion):**
+    - Sum up the main points of the idea/concept.
+    - Highlight the most important aspects and the value they add.
+
+6. **Potential Improvements/Next Steps (Future Scope):**
+    - Suggest how the idea/concept could be improved or expanded in the future.
+    - Discuss any next steps you plan to take or recommend.
+
+This is a general structure, and it can be adapted depending on the nature of the idea/concept you're discussing. For instance, if you're explaining a scientific theory, you might replace the "Implementation/Execution" section with a discussion of the supporting evidence. Remember to use clear, straightforward language and to structure your points in a logical order to ensure that your prompt is as effective as possible."""
+
+# Taking user input
+input_prompt = input("Please provide the prompt: ")
+
+prompt = f"""input: {input_prompt}
+output: {general_prompt_structure}"""
+
+response = palm.generate_text(
+  **defaults,
+  prompt=prompt
+)
+print(response.result)
