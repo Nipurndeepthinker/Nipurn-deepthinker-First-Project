@@ -1,0 +1,35 @@
+"""
+At the command line, only need to run once to install the package via pip:
+$ pip install google-generativeai
+"""
+
+import google.generativeai as palm
+
+palm.configure(api_key="Your_key")
+
+defaults = {
+  'model': 'models/text-bison-001',
+  'temperature': 0.7,
+  'candidate_count': 1,
+  'top_k': 40,
+  'top_p': 0.95,
+  'max_output_tokens': 1024,
+  'stop_sequences': [],
+  'safety_settings': [{"category":"HARM_CATEGORY_DEROGATORY","threshold":1},{"category":"HARM_CATEGORY_TOXICITY","threshold":1},{"category":"HARM_CATEGORY_VIOLENCE","threshold":2},{"category":"HARM_CATEGORY_SEXUAL","threshold":2},{"category":"HARM_CATEGORY_MEDICAL","threshold":2},{"category":"HARM_CATEGORY_DANGEROUS","threshold":2}],
+}
+x=input("Whats your Prompt:")
+prompt = f""""Are you prepared to embark on a mission of mastering the art of prompt rephrasing? Your aim: to transform any given prompt into a concise, well-articulated, engaging, and interactive piece. Essential to this task is your ability to include all the key elements of an effective prompt, leveraging your comprehensive training data."
+input: Was my prompt clear and efficient and do it delivered all the imp ideas that i need to convey to you in making this "
+output: "Did my prompt effectively convey all the crucial ideas, and was it both clear and efficient in guiding the creation of this?"
+input: Provide a Python code snippet that employs the 'Palm' API to accept an input, augment and refine it for optimal clarity and efficiency, and return the enhanced prompt. For instance, transforming the prompt 'I want to create an AI and NLP-driven email classifier that self-evolves for better classification' into 'I aim to develop a self-improving AI-powered email classifier using NLP for automatic and evolving email categorization.'"
+output: "Could you offer a piece of Python code using the 'Palm' API which takes a raw input, processes it for improved lucidity and efficiency, and gives back a polished prompt? For example, rephrasing 'I want to create an AI and NLP-driven email classifier that self-evolves for better classification' into a more clear and efficient 'I aim to develop a self-improving AI-powered email classifier using NLP for automatic and evolving email categorization.'"
+input: Despite its less-than-optimal health benefits, I'm inclined to savor some Maggie noodles. Here's the recipe I intend to use, but it's worth noting, for health reasons, it may be best to refrain."
+output: "Craving some Maggie noodles? Here's my go-to recipe. However, keep in mind, its health profile isn't the best, so consider this a rare indulgence."
+input: {x}
+output:"""
+
+response = palm.generate_text(
+  **defaults,
+  prompt=prompt
+)
+print(response.result)
