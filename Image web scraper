@@ -1,0 +1,51 @@
+import os
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+from mimetypes import guess_extension
+
+def sanitize_filename(filename):
+    return "".join([c if c.isalnum() or c in "._- " else "_" for c in filename])
+
+def get_file_extension(url):
+    response = requests.head(url, allow_redirects=True)
+    if 'content-type' in response.headers:
+        content_type = response.headers['content-type']
+        extension = guess_extension(content_type.split(';')[0].strip())
+        if extension:
+            return extension
+    return '.jpg'  # Default if no suitable extension found
+
+def scrape_images(url):
+    response = requests.get(url)
+    if response.ok:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        image_tags = soup.find_all('img')
+        save_dir = r'C:\Users\HP-i7\Desktop\hh'
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        for img in image_tags:
+            img_url = img.get('src')
+            if not img_url:  # If there is no src attribute, skip to the next image
+                continue
+            img_url = urljoin(url, img_url)
+            # Get the correct file extension
+            file_extension = get_file_extension(img_url)
+            basename = os.path.basename(img_url)
+            safe_basename = sanitize_filename(basename) + file_extension
+            img_path = os.path.join(save_dir, safe_basename)
+            with open(img_path, 'wb') as f:
+                img_content = requests.get(img_url).content
+                if img_content:  # Ensure the image content is not empty
+                    f.write(img_content)
+                    print(f"Downloaded {img_path}")
+                else:
+                    print(f"Could not retrieve image at {img_url}")
+        print(f"All images have been downloaded to the '{save_dir}' directory.")
+    else:
+        print(f"Failed to retrieve the webpage. Status Code: {response.status_code}")
+
+# Ask the user for the URL to scrape
+input_url = input("Enter the website URL to scrape images from: ")
+
+scrape_images(input_url)
