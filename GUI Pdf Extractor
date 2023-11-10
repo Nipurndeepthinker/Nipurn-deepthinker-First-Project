@@ -1,0 +1,90 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import requests
+from bs4 import BeautifulSoup
+import os
+import threading
+
+
+# Function to extract all PDF links from the given URL
+def extract_pdf_links(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        return "Failed to access page", []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    pdf_links = [a['href'] for a in soup.find_all('a', href=True) if a['href'].endswith('.pdf')]
+
+    return "Success", pdf_links
+
+
+# Function to download PDF from a link
+def download_pdf(link, download_path):
+    try:
+        response = requests.get(link, stream=True)
+        filename = os.path.join(download_path, link.split('/')[-1])
+        with open(filename, 'wb') as f:
+            f.write(response.content)
+        return "Downloaded", filename
+    except Exception as e:
+        return "Error", str(e)
+
+
+# Worker function for downloading all PDFs
+def download_all_pdfs(url, download_path):
+    status_var.set("Download started...")
+    message, pdf_links = extract_pdf_links(url)
+    if message == "Failed to access page":
+        status_var.set("Failed to access the provided URL.")
+        return
+
+    if not pdf_links:
+        status_var.set("No PDF files found at the provided URL.")
+        return
+
+    for link in pdf_links:
+        status, info = download_pdf(link, download_path)
+        if status == "Downloaded":
+            status_var.set(f"Downloaded: {info}")
+        else:
+            status_var.set(f"Error: {info}")
+
+    status_var.set("Download complete")
+
+
+# Function to handle the download button click
+def on_download_clicked():
+    url = url_var.get()
+    download_path = download_path_var.get()
+
+    if not url or not download_path:
+        messagebox.showerror("Error", "Please enter both URL and Download Path.")
+        return
+
+    threading.Thread(target=download_all_pdfs, args=(url, download_path)).start()
+
+
+# Set up the GUI
+root = tk.Tk()
+root.title("PDF Extractor")
+
+url_var = tk.StringVar()
+download_path_var = tk.StringVar()
+status_var = tk.StringVar()
+
+tk.Label(root, text="Website URL:").grid(row=0, column=0, sticky="e")
+tk.Entry(root, textvariable=url_var, width=50).grid(row=0, column=1)
+
+tk.Label(root, text="Download Path:").grid(row=1, column=0, sticky="e")
+download_path_entry = tk.Entry(root, textvariable=download_path_var, width=50)
+download_path_entry.grid(row=1, column=1)
+tk.Button(root, text="Browse", command=lambda: download_path_var.set(filedialog.askdirectory())).grid(row=1, column=2)
+
+tk.Button(root, text="Download", command=on_download_clicked).grid(row=2, column=1)
+
+status_label = tk.Label(root, textvariable=status_var)
+status_label.grid(row=3, column=0, columnspan=3)
+
+root.mainloop()
+
+
