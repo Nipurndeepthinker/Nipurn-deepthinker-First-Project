@@ -1,0 +1,22 @@
+import tkinter as tk
+
+
+# Function to update the input field whenever a button is pressed
+def press(num):
+    current = equation.get()
+    equation.set(current + str(num))
+
+
+# Function to evaluate the final expression
+def equalpress():
+    try:
+        total = str(eval(equation.get()))
+        equation.set(total)
+    except:
+        equation.set(" error ")
+        current = ""
+
+
+# Function to clear the current input
+def clear():
+    equation.set("")
