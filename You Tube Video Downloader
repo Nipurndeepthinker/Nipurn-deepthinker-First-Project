@@ -1,0 +1,29 @@
+from pytube import YouTube, Playlist
+
+def download_media(url, path):
+    try:
+        # Check if the URL is a playlist
+        if 'playlist' in url:
+            playlist = Playlist(url)
+            print(f'Downloading playlist: {playlist.title}')
+            # Iterate through all videos in the playlist and download them
+            for video_url in playlist.video_urls:
+                yt = YouTube(video_url)
+                video_stream = yt.streams.get_highest_resolution()
+                video_stream.download(path)
+                print(f"Downloaded '{yt.title}' successfully.")
+        else:
+            # It's a single video
+            yt = YouTube(url)
+            video_stream = yt.streams.get_highest_resolution()
+            video_stream.download(path)
+            print(f"Downloaded '{yt.title}' successfully.")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Example usage:
+url = "https://www.youtube.com/watch?v=ni0ymEO0Muo" # This can be a single video URL or a playlist URL
+download_path = "C:\\Users\\HP-i7\\Desktop\\hh"  # Windows path with escaped backslashes
+
+download_media(url, download_path)
