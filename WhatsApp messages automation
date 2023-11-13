@@ -1,54 +1,93 @@
-import pywhatkit as kit
-import pandas as pd
-import pdfplumber
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 import time
-from datetime import datetime, timedelta
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import openpyxl
 
-# Function to extract text from a PDF
-def get_message_from_pdf(pdf_path):
-    with pdfplumber.open(pdf_path) as pdf:
-        first_page = pdf.pages[0]
-        return first_page.extract_text()
 
-# File paths are now hardcoded into the script
-contacts_file = r"C:\Users\asus\OneDrive\Desktop\hello.xlsx"
-messages_file = r"C:\Users\asus\OneDrive\Desktop\tam.xlsx"
+# Function to read contacts from Excel file
+def read_contacts(file_path):
+    workbook = openpyxl.load_workbook(file_path)
+    contacts_sheet = workbook["Contacts"]
 
-# Determine the type of message file provided
-if messages_file.lower().endswith('.xlsx'):
-    use_excel_for_message = True
-    message_data = pd.read_excel(messages_file, sheet_name='Sheet1')
-elif messages_file.lower().endswith('.pdf'):
-    use_excel_for_message = False
-    pdf_message = get_message_from_pdf(messages_file)
-else:
-    raise ValueError("The message file must be either an Excel file (.xlsx) or a PDF file (.pdf).")
+    contacts = []
+    for row in contacts_sheet.iter_rows(min_row=2, values_only=True):
+        name, full_phone_number = row
 
-# Load the contact numbers from the Excel file
-contact_data = pd.read_excel(contacts_file, sheet_name='Sheet1')
+        # Convert the phone number to a string and extract the digits starting from the third position
+        phone_number = str(full_phone_number)[2:]
 
-# Loop through the contacts and send messages
-for index, contact in contact_data.iterrows():
-    if index >= 100:  # Limit to 100 messages
-        break
+        contacts.append({"name": name, "phone_number": phone_number})
 
-    phone_number = str(contact['PhoneNumber'])  # Convert to string to ensure correct formatting
-    if not phone_number.startswith('+'):
-        phone_number = '+' + phone_number  # Add '+' if missing
+    return contacts
 
-    # Get message from the correct source
-    message = message_data.loc[index, 'Message'] if use_excel_for_message else pdf_message
 
-    # Schedule the message (Example: send messages 1 minute apart)
-    send_time = datetime.now() + timedelta(minutes=index + 1)  # Adding 1 minute to ensure it's in the future
-
-    # Send the message using pywhatkit
+# Function to send WhatsApp message
+def send_whatsapp_message(contact, message, driver):
     try:
-        kit.sendwhatmsg(phone_number, message, send_time.hour, send_time.minute)
-        print(f"Message scheduled to {phone_number} at {send_time.strftime('%Y-%m-%d %H:%M')}")
-        # Wait for 20 seconds to avoid being blocked
-        time.sleep(20)
-    except Exception as e:
-        print(f"Failed to send message to {phone_number}: {e}")
+        # Locate the contact search bar and send the contact name
+        search_bar = driver.find_element("xpath", "//div[@contenteditable='true']")
+        search_bar.send_keys(contact["name"])
+        time.sleep(5)  # Increased sleep time to 5 seconds
+        search_bar.send_keys(Keys.RETURN)
+        time.sleep(5)  # Increased sleep time to 5 seconds
 
-print("Messages scheduled successfully.")
+        # Wait until the message input element is present (with a timeout of 10 seconds)
+        message_input_xpath = "//div[contains(@contenteditable,'true')][contains(@data-tab,'1')]"
+        message_input = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, message_input_xpath))
+        )
+
+        # Click on the message input to ensure focus
+        message_input.click()
+
+        # Send the message
+        personalized_message = message["content"].replace("{name}", contact["name"])
+        message_input.send_keys(personalized_message)
+        message_input.send_keys(Keys.RETURN)
+        time.sleep(5)  # Increased sleep time to 5 seconds
+
+        print(f"Message sent to {contact['name']} ({contact['phone_number']}) using Selenium with Microsoft Edge.")
+    except Exception as e:
+        print(f"Failed to send message to {contact['name']}: {e}")
+
+
+# Excel file path
+file_path = "C:\\Users\\HP-i7\\Desktop\\whatsapp_automation.xlsx"
+
+# Read contacts from Excel file
+contacts = read_contacts(file_path)
+
+# Set up the webdriver
+driver = webdriver.Edge()  # You'll need to have Microsoft EdgeDriver installed
+
+try:
+    driver.get("https://web.whatsapp.com/")
+    print("Scan the QR code and press Enter once logged in...")
+    input("Press Enter when ready...")
+
+    # Example usage: sending personalized messages to each contact
+    for contact in contacts:
+        send_time = time.time() + 10  # Adding 10 seconds to ensure it's in the future
+        message_content = "Hello, {name}, this is a personalized message."
+
+        # Send the message using Selenium
+        send_whatsapp_message(contact, {"content": message_content}, driver)
+
+        # Wait for a few seconds before sending the next message
+        while time.time() < send_time:
+            time.sleep(1)
+
+    print("Messages sent successfully.")
+finally:
+    driver.quit()
+
+
+
+
+
+
+
+
